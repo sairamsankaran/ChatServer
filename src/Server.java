@@ -19,10 +19,10 @@ public class Server {
 
     private void listen(int port) throws  IOException {
         ServerSocket ss = new ServerSocket(port);
-        System.out.println("Listening on server socket: " + ss);
+        System.out.println("Server listening on socket: " + ss);
         while (true) {
             Socket s = ss.accept();
-            System.out.println("Connection for client socket: " + s);
+            System.out.println("Connecting to client socket: " + s);
             DataOutputStream dataOutputStream = new DataOutputStream(s.getOutputStream());
             outputStreams.put(s, dataOutputStream);
             new ServerThread(this, s);
@@ -48,6 +48,7 @@ public class Server {
         // remove sockets to disconnected clients
         try {
             if (null != socket) {
+                System.out.println("Connection lost to client socket: " + socket);
                 socket.close();
             }
         } catch (IOException e) {

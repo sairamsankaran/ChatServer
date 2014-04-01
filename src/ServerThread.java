@@ -1,4 +1,5 @@
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
@@ -19,6 +20,8 @@ public class ServerThread extends  Thread {
     public void run(){
         try {
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataOutputStream.writeUTF("Welcome to chat room");
             while (true) {
                 String message = dataInputStream.readUTF();
                 System.out.println("Sending " + message);
