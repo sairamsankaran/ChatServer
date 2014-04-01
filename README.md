@@ -9,4 +9,4 @@ Ignore Client.java. It is still work in progress.
 >java Server <port>
 
 3) Connect to the chat server from another terminal
-telnet localhost <port>
+>telnet localhost <port>
