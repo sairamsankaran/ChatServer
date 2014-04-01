@@ -6,7 +6,7 @@ Ignore Client.java. It is still work in progress.
 >javac -g Server.java ServerThread.java
 
 2) Start the chat server
->java Server <port>
+>java Server port_number
 
 3) Connect to the chat server from another terminal
->telnet localhost <port>
+>telnet localhost port_number
