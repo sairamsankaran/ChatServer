@@ -1,15 +1,14 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 /**
  * Created by sairamsankaran on 3/31/14.
  */
 public class ServerThread extends  Thread {
-    Server server;
-    Socket socket;
+    private Server server;
+    private Socket socket;
+    private BufferedReader reader;
+    private PrintWriter writer;
 
     public ServerThread(Server server, Socket socket) {
         this.server = server;
@@ -19,12 +18,12 @@ public class ServerThread extends  Thread {
 
     public void run(){
         try {
-            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            dataOutputStream.writeUTF("Welcome to chat room");
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(socket.getOutputStream(), true);
+            writer.println("Welcome to chat room!");
             while (true) {
-                String message = dataInputStream.readUTF();
-                System.out.println("Sending " + message);
+                String message = reader.readLine();
+                System.out.println("Sending message: " + message);
                 server.sendToAll(message);
             }
         } catch (IOException ioe) {

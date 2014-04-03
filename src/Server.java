@@ -1,6 +1,5 @@
-import javax.xml.crypto.Data;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -11,35 +10,32 @@ import java.util.Map;
  * Created by sairamsankaran on 3/31/14.
  */
 public class Server {
-    Map<Socket, DataOutputStream> outputStreams = new HashMap<Socket, DataOutputStream>();
+    private HashMap<Socket, PrintWriter> writers;
 
     public Server(int port) throws IOException {
+        writers = new HashMap<Socket, PrintWriter>();
         listen(port);
     }
 
     private void listen(int port) throws  IOException {
-        ServerSocket ss = new ServerSocket(port);
-        System.out.println("Server listening on socket: " + ss);
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.out.println("Server listening on socket: " + serverSocket);
         while (true) {
-            Socket s = ss.accept();
-            System.out.println("Connecting to client socket: " + s);
-            DataOutputStream dataOutputStream = new DataOutputStream(s.getOutputStream());
-            outputStreams.put(s, dataOutputStream);
-            new ServerThread(this, s);
+            Socket socket = serverSocket.accept();
+            System.out.println("Connecting to client socket: " + socket);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            writers.put(socket, writer);
+            new ServerThread(this, socket);
         }
     }
 
     public void sendToAll(String message) {
         // Broadcast message to all clients
         System.out.println("Message from chat room: " + message);
-        Iterator it = outputStreams.entrySet().iterator();
+        Iterator it = writers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();
-            try {
-                ((DataOutputStream)pairs.getValue()).writeUTF(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            ((PrintWriter)(pairs.getValue())).println(message);
             it.remove(); // avoids a ConcurrentModificationException
         }
     }
