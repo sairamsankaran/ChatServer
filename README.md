@@ -1,6 +1,5 @@
 ChatServer
 ==========
-Ignore Client.java. It is still work in progress.
 
 1) Compile source code.
 >javac -g Server.java ServerThread.java
