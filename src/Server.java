@@ -1,42 +1,45 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by sairamsankaran on 3/31/14.
  */
 public class Server {
-    private HashMap<Socket, PrintWriter> writers;
+    private List<Socket> sockets = new ArrayList<Socket>();
 
     public Server(int port) throws IOException {
-        writers = new HashMap<Socket, PrintWriter>();
         listen(port);
     }
 
-    private void listen(int port) throws  IOException {
+    private void listen(int port) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Server listening on socket: " + serverSocket);
         while (true) {
             Socket socket = serverSocket.accept();
             System.out.println("Connecting to client socket: " + socket);
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            writers.put(socket, writer);
+            sockets.add(socket);
+            System.out.println("Number of clients in chat room: " + sockets.size());
             new ServerThread(this, socket);
         }
     }
 
-    public void sendToAll(String message) {
+    public void sendToAll(String sender, String message) {
         // Broadcast message to all clients
-        System.out.println("Message from chat room: " + message);
-        Iterator it = writers.entrySet().iterator();
+        PrintWriter writer;
+        Iterator it = sockets.iterator();
         while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry)it.next();
-            ((PrintWriter)(pairs.getValue())).println(message);
-            it.remove(); // avoids a ConcurrentModificationException
+            Socket socket = (Socket) it.next();
+            try {
+                writer = new PrintWriter(socket.getOutputStream(), true);
+                writer.println(sender + " : " + message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -44,12 +47,18 @@ public class Server {
         // remove sockets to disconnected clients
         try {
             if (null != socket) {
-                System.out.println("Connection lost to client socket: " + socket);
+                System.out.println("Closing  connection to client: " + socket);
+                sockets.remove(socket);
                 socket.close();
+                System.out.println("Number of clients in chat room: " + sockets.size());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    protected int getSize() {
+        return sockets.size();
     }
 
     public static void main(String args[]) throws Exception {
