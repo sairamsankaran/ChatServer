@@ -1,6 +1,6 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Created by sairamsankaran on 3/31/14.
@@ -10,7 +10,7 @@ public class ServerThread extends Thread {
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
-    private String nickname;
+    private String username;
 
     public ServerThread(Server server, Socket socket) {
         this.server = server;
@@ -24,40 +24,59 @@ public class ServerThread extends Thread {
             writer = new PrintWriter(socket.getOutputStream(), true);
 
             writer.println("Welcome to chat room!");
-            writer.println("Please enter a nickname: ");
-            this.nickname = reader.readLine();
-            while (!validNickname(this.nickname)) { // prompt for valid nickname
-                writer.println("Please enter a valid nickname: ");
-                this.nickname = reader.readLine();
+            writer.println("Please enter a username: ");
+            this.username = reader.readLine();
+            while (!validNickname(this.username)) { // prompt for valid username
+                writer.println("Please enter a valid username: ");
+                this.username = reader.readLine();
             }
-            writer.println("Hello " + this.nickname + " welcome to chat room!");
+            writer.println("Hello " + this.username + " welcome to chat room!");
             writer.println("There are " + this.server.getSize() + " other parties in the room including you.");
+            Iterator<String> userIterator = server.getUsers().iterator();
+            while (userIterator.hasNext()) {
+                writer.println(" * " + userIterator.next());
+            }
+            writer.println("Type 'help' for a list of commands.");
             while (true) {
                 String message = reader.readLine();
                 if (!validMessage(message)) {
                     continue; // ignore the message
                 }
-                server.sendToAll(this.nickname, message);
                 if (message.equalsIgnoreCase("bye")) {
+                    writer.println("Goodbye " + this.username);
                     break;
                 }
+                if (message.equalsIgnoreCase("help")) {
+                    printHelp();
+                    continue;
+                }
+                server.sendToAll(this.username, message);
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } finally {
-            server.removeConnection(socket);
+            server.removeConnection(username, socket);
         }
     }
 
-    private boolean validNickname(String nickname) {
-        return (this.nickname == "" || this.nickname.length() < 1);
+    private boolean validNickname(String username) {
+        if (this.username != null && this.username != "" && this.username.length() >= 1 && server.addNewUser(username)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean validMessage(String message) {
-        return (message == "" || message.length() < 1);
+        if (message != "" && message.length() >= 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    public PrintWriter getWriter() {
-        return this.writer;
+    private void printHelp() {
+        this.writer.println("'bye'  - exit chat");
+        this.writer.println("'help' - print this message");
     }
 }
