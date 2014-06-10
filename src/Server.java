@@ -11,9 +11,14 @@ import java.util.*;
  */
 public class Server {
     private List<Socket> sockets = new ArrayList<Socket>();
+    private List<String> users = new ArrayList<String>();
 
     public Server(int port) throws IOException {
         listen(port);
+    }
+
+    public List<String> getUsers() {
+        return users;
     }
 
     private void listen(int port) throws IOException {
@@ -26,6 +31,17 @@ public class Server {
             System.out.println("Number of clients in chat room: " + sockets.size());
             new ServerThread(this, socket);
         }
+    }
+
+    protected boolean addNewUser(String user) {
+        Iterator<String> iterator = this.users.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().equalsIgnoreCase(user.trim())) {
+                return false;
+            }
+        }
+        this.users.add(user.toLowerCase().trim());
+        return true;
     }
 
     public void sendToAll(String sender, String message) {
@@ -43,13 +59,14 @@ public class Server {
         }
     }
 
-    public void removeConnection(Socket socket) {
-        // remove sockets to disconnected clients
+    public void removeConnection(String user, Socket socket) {
+        // remove sockets of disconnected clients
         try {
             if (null != socket) {
                 System.out.println("Closing  connection to client: " + socket);
                 sockets.remove(socket);
                 socket.close();
+                sendToAll(user, "Has left the room.");
                 System.out.println("Number of clients in chat room: " + sockets.size());
             }
         } catch (IOException e) {
