@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * Created by sairamsankaran on 3/31/14.
  */
-public class ServerThread extends Thread {
+public class SocketRunnable implements Runnable {
     private Server server;
     private Socket socket;
     private BufferedReader reader;
@@ -15,10 +15,9 @@ public class ServerThread extends Thread {
     private static final int EXIT_CHAT_SESSION     = 0;
     private static final int CONTINUE_CHAT_SESSION = 1;
 
-    public ServerThread(Server server, Socket socket) {
+    public SocketRunnable(Server server, Socket socket) {
         this.server = server;
         this.socket = socket;
-        start();
     }
 
     public void run(){

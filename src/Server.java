@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,7 +29,9 @@ public class Server {
             System.out.println("Connecting to client socket: " + socket);
             sockets.add(socket);
             System.out.println("Number of clients in chat room: " + sockets.size());
-            new ServerThread(this, socket);
+            Runnable socketRunnable = new SocketRunnable(this, socket); // prepare job for the thread
+            Thread socketThread = new Thread(socketRunnable); // create thread and give it a job
+            socketThread.start(); // ask the thread to start its job
         }
     }
 
