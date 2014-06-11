@@ -15,11 +15,6 @@ public class ServerThread extends Thread {
     private static final int EXIT_CHAT_SESSION     = 0;
     private static final int CONTINUE_CHAT_SESSION = 1;
 
-    private static final String COMMAND_BYE        = "bye";
-    private static final String COMMAND_HELP       = "help";
-    private static final String COMMAND_CMDS       = "cmds";
-    private static final String COMMAND_USERS      = "users";
-
     public ServerThread(Server server, Socket socket) {
         this.server = server;
         this.socket = socket;
@@ -57,19 +52,28 @@ public class ServerThread extends Thread {
                     } else {
                         break;
                     }
-                } else {
+                } else { // if valid message and not a command
                     server.sendToAll(this.username, message);
                 }
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            writer.close();
             server.removeConnection(username, socket);
         }
     }
 
     private boolean isValidNickname(String username) {
-        if (this.username != null && this.username != "" && this.username.length() >= 1 && server.addNewUser(username)) {
+        if (this.username != null
+                && !this.username.equalsIgnoreCase("")
+                && this.username.length() >= 1
+                && server.addNewUser(username)) {
             return true;
         } else {
             return false;
@@ -77,8 +81,10 @@ public class ServerThread extends Thread {
     }
 
     private boolean isValidMessage(String message) {
-        // a message must have atlease a single character
-        if (message != "" && message.length() >= 1) {
+        // a message must have at least a single character
+        if (message != null
+                && !message.equalsIgnoreCase("")
+                && message.length() >= 1) {
             return true;
         } else {
             return false;
@@ -87,10 +93,10 @@ public class ServerThread extends Thread {
 
     private boolean isCommand(String string) {
         // check if string starts with a forward slash
-        if (!string.toLowerCase().trim().startsWith("/")) {
-            return false;
-        } else {
+        if (string.toLowerCase().trim().startsWith("/")) {
             return true;
+        } else {
+            return false;
         }
     }
 
@@ -101,29 +107,30 @@ public class ServerThread extends Thread {
                 return true;
             }
         }
+        writer.println("Not a valid command!");
+        writer.println("Type '/cmds' for a list of commands.");
         return false;
     }
 
     private int handleCommand(String command) {
-        if (command.trim().equalsIgnoreCase(COMMAND_BYE)){
+        // assumption: leading '/' removed in command
+        if (command.trim().equalsIgnoreCase(SharedCommandList.COMMAND_BYE)){
             writer.println("Goodbye " + this.username);
             return EXIT_CHAT_SESSION;
-        } else if (command.trim().equalsIgnoreCase(COMMAND_HELP) || command.trim().equalsIgnoreCase(COMMAND_CMDS)) {
+        } else if (command.trim().equalsIgnoreCase(SharedCommandList.COMMAND_HELP)
+                || command.trim().equalsIgnoreCase(SharedCommandList.COMMAND_CMDS)) {
             printHelp();
-            return CONTINUE_CHAT_SESSION;
-        } else if (command.trim().equalsIgnoreCase(COMMAND_USERS)) {
+        } else if (command.trim().equalsIgnoreCase(SharedCommandList.COMMAND_USERS)) {
             printUsers();
-            return CONTINUE_CHAT_SESSION;
-        } else {
-            return CONTINUE_CHAT_SESSION; // default
         }
+        return CONTINUE_CHAT_SESSION; // default
     }
 
     private void printHelp() {
-        this.writer.println("'bye'  - exit chat");
-        this.writer.println("'cmds' - print this message");
-        this.writer.println("'help' - print this message");
-        this.writer.println("'users' - print list of users in chat room");
+        this.writer.println("/bye   - exit chat room");
+        this.writer.println("/cmds  - print this message");
+        this.writer.println("/help  - print this message");
+        this.writer.println("/users - print list of users in chat room");
     }
 
     private void printUsers() {

@@ -15,8 +15,7 @@ public class Server {
     private List<String> commands = new ArrayList<String>();
 
     public Server(int port) throws IOException {
-        commands.add("bye");
-        commands.add("cmds");
+        addDefaultCommands();
         listen(port);
     }
 
@@ -90,8 +89,9 @@ public class Server {
                 System.out.println("Closing  connection to client: " + socket);
                 sockets.remove(socket);
                 socket.close();
-                sendToAll(user, "Has left the room.");
                 System.out.println("Number of clients in chat room: " + sockets.size());
+                users.remove(user);
+                sendToAll(user, "Has left the room.");
             }
         } catch (IOException e) {
             e.printStackTrace();
