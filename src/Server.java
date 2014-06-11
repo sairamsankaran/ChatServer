@@ -12,8 +12,11 @@ import java.util.*;
 public class Server {
     private List<Socket> sockets = new ArrayList<Socket>();
     private List<String> users = new ArrayList<String>();
+    private List<String> commands = new ArrayList<String>();
 
     public Server(int port) throws IOException {
+        commands.add("bye");
+        commands.add("cmds");
         listen(port);
     }
 
@@ -31,6 +34,27 @@ public class Server {
             System.out.println("Number of clients in chat room: " + sockets.size());
             new ServerThread(this, socket);
         }
+    }
+
+    protected void addCommands(List<String> commands) {
+        this.commands.addAll(commands);
+    }
+
+    protected void addCommand(String command) {
+        this.commands.add(command);
+    }
+
+    protected void removeCommand(String command) {
+        this.commands.remove(command);
+    }
+
+    protected void addDefaultCommands() {
+        String[] commands = {"bye", "cmds", "help", "users"};
+        addCommands(new ArrayList<String>(Arrays.asList(commands)));
+    }
+
+    protected List<String> getCommands() {
+        return this.commands;
     }
 
     protected boolean addNewUser(String user) {
